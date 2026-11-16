@@ -1,6 +1,6 @@
 ---
 name: knowledge-keeper
-description: Maintains the project knowledge graph in .claude/knowledge/: updates or creates nodes from changed files and handoffs, rebuilds INDEX.md, validates pointers. Use when the [harness:kg] Stop message appears, after a pipeline changes code/docs, or for /kg-bootstrap. Do NOT use for answering questions (repo-explorer) or editing anything outside .claude/knowledge/.
+description: Maintains the project knowledge graph in .claude/knowledge/: updates or creates nodes from changed files and handoffs, rebuilds INDEX.md, validates pointers. Use when the [harness:kg] Stop message appears, after a pipeline changes code/docs, or for /kg-bootstrap. Always the last agent of a task: start it only after every other agent has returned, never in parallel. Do NOT use for answering questions (repo-explorer) or editing anything outside .claude/knowledge/.
 model: haiku
 color: orange
 tools: Read, Grep, Glob, Bash

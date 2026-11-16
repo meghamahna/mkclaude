@@ -726,8 +726,11 @@ def analyze(cmd: str, allow: Allowlist, proj: str, depth: int = 0, cwd: Optional
             if t in REDIRECTS or re.match(r"^\d?[<>]{1,2}&?$", t):
                 if i + 1 < len(argv_with_redirs):
                     (here_strings if t == "<<<" else redirect_targets).append(argv_with_redirs[i + 1])
-                    if ">" in t and argv_with_redirs[i + 1] not in {"/dev/null", "&1", "&2"}:
-                        writes.append(argv_with_redirs[i + 1])
+                    target = argv_with_redirs[i + 1]
+                    # `2>&1`, `>&2`, `>&-` duplicate or close a file descriptor: no file is written.
+                    fd_dup = t.endswith("&") and (target.isdigit() or target == "-")
+                    if ">" in t and not fd_dup and target not in {"/dev/null", "&1", "&2"}:
+                        writes.append(target)
                 skip_next = True
                 continue
             argv.append(t)

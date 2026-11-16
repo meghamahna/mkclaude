@@ -434,6 +434,7 @@ Installed mkclaude v{version} into {root}
   Stack: {stack.summary(info)}
   Agents: {len([f for f in new_files if f.startswith('.claude/agents/')])} · Skills: {len({f.split('/')[2] for f in new_files if f.startswith('.claude/skills/')})}
 {('  Skipped (locally modified): ' + ', '.join(skipped)) if skipped else ''}
+{'  Note: your .claude/harness.json was kept, so new defaults in it (such as the context budget) did not apply. Compare it with the release and run /harness-doctor.' if '.claude/harness.json' in skipped else ''}
 {('  Restored (locked security files, backups kept): ' + ', '.join(restored)) if restored else ''}
 Next steps:
   1. cd {root} && claude
@@ -508,7 +509,7 @@ def uninstall(root: str, args) -> int:
         print("  " + line)
     if not args.dry_run:
         shutil.rmtree(ops.abs(".claude/state"), ignore_errors=True)
-        for dirpath, dirnames, filenames in sorted(os.walk(ops.abs(".claude")), key=lambda x: -len(x[0])):
+        for dirpath, _dirs, _files in sorted(os.walk(ops.abs(".claude")), key=lambda x: -len(x[0])):
             if "/knowledge" in dirpath.replace(os.sep, "/"):
                 continue
             for d in ("__pycache__",):

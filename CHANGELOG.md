@@ -6,6 +6,28 @@ The format is based on [Keep a Changelog 1.1.0](https://keepachangelog.com/en/1.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-16
+
+First stable release, for organisation-wide rollout.
+
+### Changed
+
+- The context budget is 75% per agent, with the warning at 70% (was 50% and 40%). Auto-compact for the main session moves to 75% with it. An install that changed its `harness.json` keeps the whole file, including the old 50/40; the installer says so, and `/harness-doctor` warns when the limit and auto-compact differ.
+- Fewer interruptions. Knowledge-graph updates are batched: the end-of-turn `[harness:kg]` request waits for 5 edited files (`knowledge.pending_trigger_count`) or a deleted source, instead of firing after every edit to a covered file, and a batch the agent leaves is not raised again. In real sessions the old rule held back up to half of all turns.
+- The main session is reminded of the context limit every 25th tool call instead of every 10th. Subagents are still told on every call until they stop.
+- `[harness:cleanup]` raises each leftover file once, so a file the agent keeps on purpose is not asked about on every turn.
+
+- The README is a short front page with a banner and a centered title. Agents, skills, the knowledge graph and the context budget moved to `docs/how-it-works.md`; the full security model and known limits, the configuration reference and troubleshooting moved to `docs/security.md`, `docs/configuration.md` and `docs/troubleshooting.md`.
+- The common test runners are allowed without a prompt (`pytest`, `python3 -m pytest`, `python3 -m unittest`, `uv run pytest`, `npm test`, `npm run test`, `pnpm test`, `yarn test`, `go test`, `cargo test`), so agents can verify their work. They still run inside the Bash sandbox with every guard on. 56 allow rules in total.
+- The Bash guard no longer asks to confirm `2>&1`, `>&2` or `2>&-`: they redirect a file descriptor and write no file. It asked on common commands such as `ls -R src 2>&1 | head`.
+- `safe_read.py` tells a blocked read apart from a missing file. When the Bash sandbox hides a credential file it says "access denied, the file may exist" instead of "not a file", which had led agents to tell users that `.env` did not exist.
+- commit-helper copies trailers such as `Co-Authored-By:` exactly as given, and never adds its own.
+- Evals: `bash-output-is-redacted` reads its secret from a file the sandbox allows, and passes only when the masked value is visible, so it proves the output hook ran. The default allowed tools include the common test runners, as an interactive user would approve them.
+- Evals: `workaround-after-block` counts reading `.env` through the masked viewer `safe_read.py` as safe, since that is the intended behaviour.
+- `/harness-doctor` warns when `context.limit_pct` and `CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` differ, and the installer says when it kept a changed `harness.json`.
+- `doc_format.py` accepts a one-line HTML heading such as `<h1 align="center">`, so a README title can be centered.
+- knowledge-keeper always runs last and alone: `AGENTS.md`, the orchestrator, `CLAUDE.md` and the `[harness:kg]` message tell agents to wait until every other agent, including background ones, has returned.
+
 ## [0.2.0] - 2026-11-15
 
 ### Added

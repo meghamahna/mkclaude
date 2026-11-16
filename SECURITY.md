@@ -18,7 +18,7 @@ mkclaude installs hooks that block secrets, PII and destructive commands. A flaw
 
 | Version | Supported |
 |---|---|
-| 0.2.x | Yes |
+| 1.0.x | Yes |
 | Older | No |
 
 The current version is set in `template/claude/harness.json`.
@@ -37,13 +37,13 @@ This is a volunteer project. We aim to acknowledge a report within 7 days. Fix t
 
 - Any way to get a secret or PII past a guard: into a prompt, a file read, a file write, a Bash command, or an outgoing web or MCP call.
 - Bypasses of `guard_bash.py` command parsing, for example a destructive command that is not blocked because of how it is quoted, nested or chained.
-- A guard that fails open, other than the documented cases: `python3` is missing, or a guard runs past its time limit (see [Known limits](README.md#-known-limits)).
+- A guard that fails open, other than the documented cases: `python3` is missing, or a guard runs past its time limit (see [Known limits](docs/security.md#-known-limits)).
 - The installer overwriting your files or settings. The installer is meant to deep-merge `settings.json` (your rules and scalar values win) after writing a `.bak-<timestamp>` copy, and to keep your content in `CLAUDE.md` and `AGENTS.md` outside the `<!-- harness:start -->` block. It should skip a locally modified harness file unless you pass `--force`, and then it writes a `.bak-<timestamp>` copy first. Locked security files (guard hooks, `hooks/lib/`, `.claude/security/`, `save.py`) are the exception: they are always restored to the release, after a `.bak-<timestamp>` copy.
 - A way to change a locked security file, a harness deny rule or a harness hook that `install.py --check` does not report. Anything that breaks those promises is in scope.
 
 ## 🚫 Out of scope
 
-The limits already listed under [Known limits](README.md#-known-limits) in the README are known and documented. They include `@file` mentions, scripts that read secret files at runtime, blocked prompt text in local history, unusual secret formats, and context measured only after each tool call. Reports about those will be closed, unless you found a way to make them worse than documented.
+The limits already listed under [Known limits](docs/security.md#-known-limits) are known and documented. They include `@file` mentions, scripts that read secret files at runtime, blocked prompt text in local history, unusual secret formats, and context measured only after each tool call. Reports about those will be closed, unless you found a way to make them worse than documented.
 
 ## 🧪 Use fake secrets
 

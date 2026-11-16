@@ -184,6 +184,21 @@ class TestSafeReadAndFailClosed(unittest.TestCase):
         self.assertNotIn("QUJD", r.stdout)
         self.assertIn("25\tlast ***REDACTED:value***", r.stdout)  # line numbers kept; a key file shows no values
 
+    def test_safe_read_says_blocked_not_missing(self):
+        run = lambda p: subprocess.run([sys.executable, os.path.join(TOOLS, "safe_read.py"), p], capture_output=True,
+                                       text=True, env={**os.environ, "CLAUDE_PROJECT_DIR": self.proj})
+        self.assertIn("no such file", run(os.path.join(self.proj, "missing.env")).stderr)
+        locked = os.path.join(self.proj, "locked")
+        spit(os.path.join(locked, ".env"), "A=1\n")
+        os.chmod(locked, 0)  # like the sandbox: the file exists but cannot be looked at
+        try:
+            r = run(os.path.join(locked, ".env"))
+        finally:
+            os.chmod(locked, 0o755)
+        if os.geteuid() != 0:  # root ignores permissions
+            self.assertIn("access denied", r.stderr)
+            self.assertIn("do not tell the user it is missing", r.stderr)
+
     def safe_read(self, rel, text):
         spit(os.path.join(self.proj, rel), text)
         r = subprocess.run([sys.executable, os.path.join(TOOLS, "safe_read.py"), os.path.join(self.proj, rel)],

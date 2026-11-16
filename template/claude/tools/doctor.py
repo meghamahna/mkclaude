@@ -197,6 +197,15 @@ def main(argv=None):
             report("PASS" if len(perms.get("deny", [])) >= 20 else "WARN", f"{len(perms.get('deny', []))} deny rules")
             report("PASS" if perms.get("disableBypassPermissionsMode") == "disable" else "WARN", "bypass-permissions mode disabled")
             report("PASS" if (st.get("sandbox") or {}).get("enabled") else "WARN", "bash sandbox enabled")
+            try:
+                with open(os.path.join(proj, ".claude", "harness.json")) as fh:
+                    limit = (json.load(fh).get("context") or {}).get("limit_pct")
+            except (OSError, ValueError, AttributeError):
+                limit = None
+            compact = (st.get("env") or {}).get("CLAUDE_AUTOCOMPACT_PCT_OVERRIDE")
+            if limit is not None and compact is not None and str(limit) != str(compact):
+                report("WARN", f"context.limit_pct in harness.json is {limit} but CLAUDE_AUTOCOMPACT_PCT_OVERRIDE in "
+                       f"settings.json is {compact}; set both to the same number")
         except (OSError, ValueError) as exc:
             report("FAIL", f".claude/settings.json unreadable: {exc}")
         user_settings = os.path.expanduser("~/.claude/settings.json")

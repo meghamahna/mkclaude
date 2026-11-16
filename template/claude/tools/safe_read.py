@@ -8,6 +8,7 @@ import argparse
 import json
 import os
 import re
+import stat
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -79,8 +80,19 @@ def main(argv=None):
         ap.error("path is required")
     proj = os.environ.get("CLAUDE_PROJECT_DIR") or os.path.abspath(os.path.join(HERE, "..", ".."))
     path = os.path.expanduser(a.path)
-    if not os.path.isfile(path):
-        print(f"not a file: {a.path}", file=sys.stderr)
+    try:
+        st = os.stat(path)
+    except FileNotFoundError:
+        print(f"no such file: {a.path}", file=sys.stderr)
+        return 2
+    except PermissionError:
+        # The Bash sandbox denies credential files (the Read deny rules), so this is not proof the file is missing.
+        print(f"cannot read {a.path}: access denied (the Bash sandbox blocks credential files). The file may exist; "
+              "do not tell the user it is missing. Ask them to run `python3 .claude/tools/safe_read.py "
+              f"{a.path}` in their own terminal for a masked view.", file=sys.stderr)
+        return 2
+    if not stat.S_ISREG(st.st_mode):
+        print(f"not a regular file: {a.path}", file=sys.stderr)
         return 2
     with open(path, "rb") as fh:
         raw = fh.read(MAX_BYTES + 1)

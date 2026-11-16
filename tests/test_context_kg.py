@@ -38,21 +38,23 @@ class TestContextGuard(unittest.TestCase):
     def test_thresholds_main(self):
         write_transcript(self.tp, 30_000)
         self.assertEqual(self.ctx(), "")
-        write_transcript(self.tp, 85_000)
-        self.assertIn("WARN 42%", self.ctx())
-        self.assertEqual(self.ctx(), "")  # warn only once
         write_transcript(self.tp, 101_000)
+        self.assertEqual(self.ctx(), "")  # 50% is under the default budget
+        write_transcript(self.tp, 141_000)
+        self.assertIn("WARN 70%", self.ctx())
+        self.assertEqual(self.ctx(), "")  # warn only once
+        write_transcript(self.tp, 151_000)
         msg = self.ctx()
-        self.assertIn("LIMIT 50%", msg)
+        self.assertIn("LIMIT 76%", msg)
         self.assertIn("orchestrator", msg)
-        self.assertEqual([bool(self.ctx()) for _ in range(10)], [False] * 9 + [True])  # reminded every 10th call
+        self.assertEqual([bool(self.ctx()) for _ in range(25)], [False] * 24 + [True])  # reminded every 25th call
         write_transcript(self.tp, 30_000)  # new session, /clear or compaction
         self.assertEqual(self.ctx(), "")
-        write_transcript(self.tp, 85_000)
+        write_transcript(self.tp, 141_000)
         self.assertIn("WARN", self.ctx())  # warns again
 
     def test_subagent_limit_repeats_every_call(self):
-        write_transcript(os.path.join(self.proj, "t", "sess", "subagents", "agent-abc.jsonl"), 120_000)
+        write_transcript(os.path.join(self.proj, "t", "sess", "subagents", "agent-abc.jsonl"), 160_000)
         self.assertTrue(all("LIMIT" in self.ctx(agent_id="abc", agent_type="coding-agent") for _ in range(3)))
 
     def test_ignores_sidechain_in_main(self):
@@ -61,19 +63,19 @@ class TestContextGuard(unittest.TestCase):
 
     def test_subagent_transcript(self):
         write_transcript(self.tp, 10_000)
-        write_transcript(os.path.join(self.proj, "t", "sess", "subagents", "agent-abc.jsonl"), 120_000)
+        write_transcript(os.path.join(self.proj, "t", "sess", "subagents", "agent-abc.jsonl"), 160_000)
         msg = self.ctx(agent_id="abc", agent_type="coding-agent")
-        self.assertIn("LIMIT 60%", msg)
+        self.assertIn("LIMIT 80%", msg)
         self.assertIn("STATUS: HANDOFF", msg)
         self.assertIn("coding-agent", msg)
 
     def test_statusline_window_size(self):
-        write_transcript(self.tp, 150_000)
+        write_transcript(self.tp, 160_000)
         os.makedirs(os.path.join(self.proj, ".claude", "state"), exist_ok=True)
         with open(os.path.join(self.proj, ".claude", "state", "window-s1.json"), "w") as fh:
             json.dump({"window": 1_000_000}, fh)
-        self.assertEqual(self.ctx(session_id="s1"), "")  # 15% of 1M
-        self.assertIn("LIMIT", self.ctx(session_id="other"))  # 75% of 200k
+        self.assertEqual(self.ctx(session_id="s1"), "")  # 16% of 1M
+        self.assertIn("LIMIT", self.ctx(session_id="other"))  # 80% of 200k
 
     def test_override_window(self):
         with open(os.path.join(self.proj, ".claude", "harness.json"), "w") as fh:
@@ -160,12 +162,17 @@ class TestKnowledgeGraph(unittest.TestCase):
         self.assertLessEqual(len(idx), 40)
         self.assertTrue(any("more" in l for l in idx))
 
+    def edit(self, rel):
+        run_hook("kg_hooks.py", {"tool_name": "Edit", "tool_input": {"file_path": os.path.join(self.proj, rel)}}, self.proj, "track")
+
     def test_pending_and_stop_hook(self):
         kg(self.proj, "upsert", "module-auth-jwt", "--kind", "module", "--summary", "JWT", "--sources", "src/auth/jwt.py:1-5")
-        ev = {"tool_name": "Edit", "tool_input": {"file_path": os.path.join(self.proj, "src", "auth", "jwt.py")}}
-        run_hook("kg_hooks.py", ev, self.proj, "track")
-        run_hook("kg_hooks.py", {"tool_name": "Edit", "tool_input": {"file_path": os.path.join(self.proj, "tests", "t.py")}}, self.proj, "track")
+        self.edit("src/auth/jwt.py")
+        self.edit("tests/t.py")
         self.assertIn("module-auth-jwt", kg(self.proj, "pending").stdout)
+        self.assertEqual(run_hook("kg_hooks.py", {}, self.proj, "stop"), {})  # one covered edit waits for a batch
+        for rel in ("src/a.py", "src/b.py", "src/c.py", "src/d.py"):
+            self.edit(rel)
         out = run_hook("kg_hooks.py", {"hook_event_name": "Stop"}, self.proj, "stop")
         self.assertEqual(out.get("decision"), "block")
         self.assertIn("knowledge-keeper", out["reason"])
@@ -173,6 +180,31 @@ class TestKnowledgeGraph(unittest.TestCase):
         self.assertEqual(run_hook("kg_hooks.py", {"stop_hook_active": True}, self.proj, "stop"), {})
         kg(self.proj, "pending", "--clear")
         self.assertEqual(run_hook("kg_hooks.py", {}, self.proj, "stop"), {})
+
+    def test_a_skipped_batch_is_not_asked_again(self):
+        for i in range(5):
+            self.edit(f"src/m{i}.py")
+        self.assertEqual(run_hook("kg_hooks.py", {}, self.proj, "stop").get("decision"), "block")
+        self.assertEqual(run_hook("kg_hooks.py", {}, self.proj, "stop"), {})  # the agent left it: no nag next turn
+        for i in range(5, 9):
+            self.edit(f"src/m{i}.py")
+        self.assertEqual(run_hook("kg_hooks.py", {}, self.proj, "stop"), {})
+        self.edit("src/m9.py")  # a second full batch asks again
+        self.assertEqual(run_hook("kg_hooks.py", {}, self.proj, "stop").get("decision"), "block")
+        kg(self.proj, "pending", "--clear")
+        self.assertEqual(run_hook("kg_hooks.py", {}, self.proj, "stop"), {})
+        for i in range(5):  # after a clear, the next batch counts from zero
+            self.edit(f"src/n{i}.py")
+        self.assertEqual(run_hook("kg_hooks.py", {}, self.proj, "stop").get("decision"), "block")
+
+    def test_batch_after_clear_is_not_missed(self):
+        for i in range(5):
+            self.edit(f"src/m{i}.py")
+        self.assertEqual(run_hook("kg_hooks.py", {}, self.proj, "stop").get("decision"), "block")
+        kg(self.proj, "pending", "--clear")  # knowledge-keeper clears inside the continued turn
+        for i in range(7):  # 7 is not below the 5 asked about before, but it is a new full batch
+            self.edit(f"src/n{i}.py")
+        self.assertEqual(run_hook("kg_hooks.py", {}, self.proj, "stop").get("decision"), "block")
 
     def test_minor_unreferenced_edit_does_not_block(self):
         kg(self.proj, "upsert", "module-auth-jwt", "--kind", "module", "--summary", "JWT", "--sources", "src/auth/jwt.py:1-5")

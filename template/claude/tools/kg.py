@@ -452,7 +452,7 @@ def validate(kg: KG) -> Tuple[List[str], List[str]]:
                     errors.append(f"{rel}: '{src}' is past end of file ({line_cache[ap]} lines)")
     for n in nodes:
         for l in n["meta"]["links"]:
-            t, target = parse_link(l)
+            _, target = parse_link(l)
             if target not in ids:
                 errors.append(f"{os.path.relpath(n['file'], kg.root)}: dangling link '{l}'")
     expected, _ = build_index(kg)
@@ -551,6 +551,13 @@ def cmd_pending(kg: KG, args) -> int:
             except OSError as exc:
                 print(f"could not clear {os.path.relpath(kg.pending_path, kg.root)}: {exc}", file=sys.stderr)
                 return 1
+        # The end-of-turn check counts its next batch from zero again (see hooks/kg_hooks.py).
+        reported = os.path.join(os.path.dirname(kg.pending_path), "kg-reported.json")
+        if os.path.exists(reported):
+            try:
+                open(reported, "w").close()
+            except OSError:
+                pass
         print("pending cleared")
         return 0
     items = [p for p in read_pending(kg) if not is_ignored(kg, p)]

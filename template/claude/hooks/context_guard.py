@@ -15,7 +15,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "lib
 from common import add_context, load_config, project_dir, run_soft, state_dir  # noqa: E402
 
 TAIL_BYTES = 4 * 1024 * 1024
-LIMIT_REPEAT_EVERY = 10
+# The main session is reminded every 25th call; auto-compact at the same percentage is the backstop.
+LIMIT_REPEAT_EVERY = 25
 
 
 def transcript_for(event):

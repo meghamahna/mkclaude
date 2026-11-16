@@ -2,7 +2,7 @@
 """Documentation format: linked table of contents and one emoji per heading.
 
 Rules enforced by `check`:
-  - every heading (h1-h4) starts with exactly one emoji from the palette, then a space
+  - every heading (h1-h4; the h1 may be a one-line HTML <h1>, e.g. centered) starts with exactly one emoji from the palette, then a space
   - no emoji anywhere else (body text, lists, tables, TOC entries); code is ignored
   - no variation selectors or joiners, so GitHub anchors stay clean (`## 🚀 Quick start` -> `#-quick-start`)
   - one h1, no skipped heading levels
@@ -43,10 +43,13 @@ PALETTE: Dict[str, str] = {
     "📜": "history / changelog", "🔖": "versions / releases", "🧾": "contracts / formats",
     "🤝": "agreements / protocols", "🧮": "algorithms / data structures", "🧬": "data model / schema",
     "💾": "storage / persistence", "🔔": "notifications", "🚦": "status / policy", "👤": "users / actors",
-    "⭐": "highlights",
+    "⭐": "highlights", "🪄": "project title / setup",
 }
 
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.*?)\s*#*\s*$")
+# A one-line, plain-text HTML title, e.g. a centered <h1 align="center">🪄 Name</h1>. Only h1: GitHub gives raw
+# HTML headings no anchor, so a lower one could not be linked from the TOC. Nested tags (a logo) are not a title.
+HTML_H1_RE = re.compile(r"^ {0,3}<h1(?:\s[^>]*)?>\s*([^<>]*?)\s*</h1>\s*$", re.IGNORECASE)
 FENCE_RE = re.compile(r"^\s*(```|~~~)")
 INLINE_CODE_RE = re.compile(r"`[^`]*`")
 LINK_RE = re.compile(r"\[([^\]]*)\]\(#([^)]+)\)")
@@ -86,8 +89,11 @@ def scan(lines: List[str]) -> Tuple[List[Tuple[int, int, str]], List[Tuple[int, 
         if in_fence:
             continue
         m = HEADING_RE.match(line)
+        h = HTML_H1_RE.match(line)
         if m:
             headings.append((i, len(m.group(1)), m.group(2)))
+        elif h:
+            headings.append((i, 1, h.group(1)))
         else:
             body.append((i, line))
     return headings, body

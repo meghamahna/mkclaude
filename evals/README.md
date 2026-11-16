@@ -68,7 +68,7 @@ Scenarios live in `scenarios.json`. Each has a prompt, a per-run spending cap, o
 - `--model` sets the main session's model; subagents keep the models in their own definitions.
 - Results go to `evals/results/<timestamp>.json` (gitignored) with cost, turns, duration, per-model usage, the subagents spawned, each tool call's input (secret masked), and each check's outcome.
 - **Value per dollar.** `--compare` puts two result files side by side. Three comparisons are worth keeping: harness against `--no-harness` (what the harness adds in cost, and which security scenarios fail without it), before against after a prompt change, and one model tier against another for the same agent. Change a tier only when the pass rate holds.
-- The last full run was on 2026-11-11, when there were 19 scenarios (the last three in the table were added later). It cost $4.68 with Sonnet as the main model, about 2 to 3 minutes per multi-agent scenario. Single-step scenarios cost $0.10 to $0.21; the code pipeline and orchestrator scenarios $0.70 to $0.88. The no-harness control on the seven security scenarios cost $0.56.
+- The last full run was on 2026-11-16 for v1.0.0, with Sonnet as the main model and Claude Code 2.1.325: 22/22 passed for $6.57, including a two-trial re-run of `workaround-after-block` after its check was corrected. Single-step scenarios cost $0.10 to $0.25; the code pipeline $0.63 and the orchestrator $1.01 (about 3 minutes). The no-harness control on the seven security scenarios cost $0.56 on 2026-11-11.
 
 ## 🚫 Limits
 

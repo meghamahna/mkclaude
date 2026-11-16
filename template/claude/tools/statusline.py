@@ -19,7 +19,7 @@ def main():
             ctx_cfg = json.load(fh).get("context", {})
     except (OSError, ValueError):
         ctx_cfg = {}
-    limit, warn = ctx_cfg.get("limit_pct", 50), ctx_cfg.get("warn_pct", 40)
+    limit, warn = ctx_cfg.get("limit_pct", 75), ctx_cfg.get("warn_pct", 70)
     model = (ev.get("model") or {}).get("display_name") or "?"
     size = (ev.get("context_window") or {}).get("context_window_size")
     if size and ev.get("session_id"):  # lets context_guard.py use the real window size

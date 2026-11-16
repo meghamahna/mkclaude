@@ -69,7 +69,7 @@ body:
     attributes:
       label: Harness version
       description: The `version` field in your project's `.claude/harness.json`.
-      placeholder: 0.2.0
+      placeholder: 1.0.0
     validations:
       required: true
 

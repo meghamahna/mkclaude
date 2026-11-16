@@ -45,7 +45,7 @@ verified_commit: 3f9c2ab
 - **Exclude:** task progress, TODOs, temporary debugging notes, anything derivable in one grep, secrets, PII, and values of env vars (names only).
 
 ## Update protocol
-Edits are recorded in `.claude/state/kg-pending`. When the Stop hook says `[harness:kg] ...`, delegate to **knowledge-keeper**, which runs:
+Edits are recorded in `.claude/state/kg-pending` and batched (`knowledge.pending_trigger_count`, 5 files by default). When the Stop hook says `[harness:kg] ...`, wait for every other agent to finish, then delegate to **knowledge-keeper**, which runs:
 ```bash
 python3 .claude/tools/kg.py pending                 # changed files + nodes that reference them
 python3 .claude/tools/kg.py prune --apply           # remove nodes whose sources were all deleted
