@@ -1,7 +1,9 @@
 name: CI
 
 on:
+  # Pushes run on main only; other branches are tested through their pull request, not twice.
   push:
+    branches: [main]
   pull_request:
 
 permissions:
