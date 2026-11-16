@@ -16,10 +16,11 @@ def housekeeping(event, proj):
     if event.get("source", "startup") in ("startup", "clear"):
         with open(os.path.join(sdir, "session-start"), "w") as fh:
             fh.write(str(time.time()))
-        try:
-            os.remove(os.path.join(sdir, "created-files"))
-        except OSError:
-            pass
+        for name in ("created-files", "cleanup-reported"):
+            try:
+                os.remove(os.path.join(sdir, name))
+            except OSError:
+                pass
     import cleanup
     cleanup.purge(proj)
 

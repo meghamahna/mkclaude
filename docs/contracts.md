@@ -9,7 +9,7 @@ Anything installed into a project must follow these. Paths are relative to the *
 - [Installed layout](#-installed-layout)
 - [Tools (run from project root with `python3`)](#-tools-run-from-project-root-with-python3)
 - [Knowledge graph](#-knowledge-graph)
-  - [Node file `.claude/knowledge/nodes/<id>.md`](#-node-file-claudeknowledgenodesmd)
+  - [Node file](#-node-file)
   - [Lookup protocol (all agents)](#-lookup-protocol-all-agents)
   - [Update protocol](#-update-protocol)
 - [Context budget protocol](#-context-budget-protocol)
@@ -69,7 +69,8 @@ Anything installed into a project must follow these. Paths are relative to the *
 
 ## 🧠 Knowledge graph
 
-### 🧬 Node file `.claude/knowledge/nodes/<id>.md`
+### 🧬 Node file
+Path: `.claude/knowledge/nodes/<id>.md`.
 - `id` = `<kind>-<slug>` (lowercase, `a-z0-9-`).
 - The file name equals `id` + `.md`.
 
@@ -132,7 +133,7 @@ verified_commit: abc1234
 
 ### 🔄 Update protocol
 - Hooks append edited paths to `.claude/state/kg-pending`.
-- When the pending set is significant, the **Stop** hook blocks once with a message starting `[harness:kg]`. The main agent then delegates to **knowledge-keeper**, which:
+- When a batch is waiting (`knowledge.pending_trigger_count` edited files, 5 by default, not counting ignored paths) or a node's sources were deleted, the **Stop** hook blocks once with a message starting `[harness:kg]`. A batch that is left alone is not raised again; the next request waits for another full batch or a newly obsolete node. The main agent then delegates to **knowledge-keeper**, which:
   1. Runs `kg.py pending` to see the changed files and the nodes that reference them.
   2. Updates or creates nodes (major info only) and sets `updated` + `verified_commit` (`git rev-parse --short HEAD`, or `none`).
   3. Runs `kg.py index && kg.py validate`.
@@ -143,8 +144,8 @@ verified_commit: abc1234
 The hook `context_guard.py` measures each agent's own context usage after every tool call.
 
 **Hook messages**, which are injected as context:
-- `[harness:context] WARN NN%`: at or above `warn_pct` (40). Finish the current unit of work. No large reads; delegate exploration.
-- `[harness:context] LIMIT NN%`: at or above `limit_pct` (50). **Stop work now.** Save a handoff note with `save.py handoff <agent>`, then end your turn with the return block `STATUS: HANDOFF <path>`. For a subagent the message repeats on every tool call; the main session is reminded every tenth call. It is an instruction, not a hard stop; auto-compact is the backstop.
+- `[harness:context] WARN NN%`: at or above `warn_pct` (70). Finish the current unit of work. No large reads; delegate exploration.
+- `[harness:context] LIMIT NN%`: at or above `limit_pct` (75). **Stop work now.** Save a handoff note with `save.py handoff <agent>`, then end your turn with the return block `STATUS: HANDOFF <path>`. For a subagent the message repeats on every tool call; the main session is reminded every 25th call. It is an instruction, not a hard stop; auto-compact is the backstop.
 
 **Handoff file** `.claude/knowledge/handoffs/<agent>-<YYYYmmdd-HHMMSS>.md` (written by `save.py handoff`):
 
@@ -169,7 +170,7 @@ task: <one line>
 
 **Respawn.** A PostToolUse hook on the `Agent` tool detects `STATUS: HANDOFF <path>` in a subagent's result and injects `[harness:handoff] ...`. The parent must then spawn a **fresh agent of the same type** with this prompt: `Resume from handoff <path>. Read it first, then only the KG nodes/pointers it lists. Continue from "Next first step".`
 
-**Main session:** at LIMIT, write a handoff, then delegate the remainder to a fresh `orchestrator` subagent with that handoff. If that isn't possible, tell the user to run `/clear` then `/resume-handoff <path>`. Auto-compact at 50% (`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=50`) is the backstop.
+**Main session:** at LIMIT, write a handoff, then delegate the remainder to a fresh `orchestrator` subagent with that handoff. If that isn't possible, tell the user to run `/clear` then `/resume-handoff <path>`. Auto-compact at 75% (`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=75`) is the backstop.
 
 ## 📋 Agent return block (every agent ends with this)
 

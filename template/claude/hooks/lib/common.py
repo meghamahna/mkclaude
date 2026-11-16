@@ -11,7 +11,7 @@ import traceback
 from typing import Any, Callable, Dict, Optional
 
 DEFAULT_CONFIG: Dict[str, Any] = {
-    "context": {"limit_pct": 50, "warn_pct": 40, "window_tokens": "auto"},
+    "context": {"limit_pct": 75, "warn_pct": 70, "window_tokens": "auto"},
     "scan": {
         "max_file_bytes": 5 * 1024 * 1024,
         "grep_max_files": 2000,

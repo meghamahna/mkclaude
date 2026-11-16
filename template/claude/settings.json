@@ -192,12 +192,26 @@
       "Bash(python3 .claude/tools/doc_format.py *)",
       "Bash(python3 .claude/tools/cleanup.py *)",
       "Bash(python3 .claude/tools/stack.py*)",
-      "Bash(python3 .claude/tools/doctor.py*)"
+      "Bash(python3 .claude/tools/doctor.py*)",
+      "Bash(pytest)",
+      "Bash(pytest *)",
+      "Bash(python3 -m pytest*)",
+      "Bash(python -m pytest*)",
+      "Bash(uv run pytest*)",
+      "Bash(python3 -m unittest*)",
+      "Bash(python -m unittest*)",
+      "Bash(npm test*)",
+      "Bash(npm run test*)",
+      "Bash(pnpm test*)",
+      "Bash(pnpm run test*)",
+      "Bash(yarn test*)",
+      "Bash(go test *)",
+      "Bash(cargo test*)"
     ],
     "disableBypassPermissionsMode": "disable"
   },
   "env": {
-    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "50"
+    "CLAUDE_AUTOCOMPACT_PCT_OVERRIDE": "75"
   },
   "sandbox": {
     "enabled": true,

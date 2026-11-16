@@ -37,7 +37,7 @@ mkclaude installs a Claude Code project harness (agents, skills, security hooks,
 |---|---|
 | `install.py` | The single entry point: `python3 install.py DIR="/path/to/project"`. It copies the template into the target project and merges settings. |
 | `template/` | An exact mirror of what lands in a project: `claude/` becomes `<project>/.claude/`, and `AGENTS.md` and `CLAUDE.md.tmpl` become the project's `AGENTS.md` and `CLAUDE.md`. Edit the harness here. |
-| `docs/` | `contracts.md` (shared conventions) and `diagrams/`. |
+| `docs/` | User docs (`how-it-works.md`, `security.md`, `configuration.md`, `troubleshooting.md`), `contracts.md` (shared conventions), `diagrams/` and `assets/` (the README banner). |
 | `tests/` | The `unittest` suite. |
 | `evals/` | Behavioral evals that run real headless Claude sessions. See `evals/README.md`. |
 | `scripts/` | Maintainer scripts. `gen_diagram_templates.py` regenerates the diagram-maker SVG templates. |
@@ -223,7 +223,7 @@ Maintainers cut releases. Contributors only need to keep `[Unreleased]` current.
 1. Bump `version` in `template/claude/harness.json`.
 2. In `CHANGELOG.md`, move the entries under `[Unreleased]` to a new heading for the version with the release date, and leave an empty `[Unreleased]` section.
 3. Open a PR with those two changes and merge it after CI passes.
-4. After the merge, a maintainer tags the merge commit as `v<version>` (for example `v0.1.0`) and pushes the tag.
+4. After the merge, a maintainer tags the merge commit as `v<version>` (for example `v1.0.0`) and pushes the tag.
 
 ## 🔒 Security and conduct
 

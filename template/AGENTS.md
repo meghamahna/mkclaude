@@ -65,7 +65,7 @@ KG update needed ([harness:kg])?               → knowledge-keeper
 | UI | frontend-ui-builder → code-reviewer (→ security-auditor, same rule) → commit-helper |
 | Docs | doc-writer → doc-reviewer |
 | Diagrams | diagram-builder → diagram-reviewer |
-| Any of the above changed code/docs | → knowledge-keeper, once at the end of the task or when `[harness:kg]` asks |
+| Any of the above changed code/docs | → knowledge-keeper, **last** (section 7), or when `[harness:kg]` asks |
 
 Reviewer `critical`/`high` findings go back to the builder. Max 3 fix loops, then report `BLOCKED`. Pass each stage the previous stage's **return block and pointers**, never file dumps.
 
@@ -100,7 +100,7 @@ Reviewers put `FINDINGS:` (severity-ranked, each with `path:line`, concrete scen
 
 A hook measures each agent's own context use after every tool call.
 - `[harness:context] WARN NN%`: finish the current unit; no large reads; delegate exploration.
-- `[harness:context] LIMIT NN%`: **stop work now**. Write a handoff and return `STATUS: HANDOFF <path>`. The message repeats until you comply.
+- `[harness:context] LIMIT NN%`: **stop work now**. Write a handoff and return `STATUS: HANDOFF <path>`. Subagents get it every call, the main session every 25th.
 
 **Handoff file:** `python3 .claude/tools/save.py handoff <agent> <<'EOF'` writes `.claude/knowledge/handoffs/<agent>-<YYYYmmdd-HHMMSS>.md` and prints the path:
 ```markdown
@@ -132,12 +132,13 @@ Read-only agents cannot write files: they put the handoff content in `SUMMARY` a
 - Run independent **read-only** work in parallel (exploration, reviews of different areas, doc + diagram drafting on separate files).
 - **Writers never share files.** Assign disjoint file sets or run sequentially.
 - Anything with a data dependency runs in order. One commit-helper at a time.
+- **knowledge-keeper runs last and alone**, after every other agent (background ones too) has returned.
 
 ## 🧠 8. Knowledge graph (index-based memory)
 
 - **Look up first:** `.claude/knowledge/INDEX.md` or `python3 .claude/tools/kg.py query <terms>` → open the node → ranged read at its `path:line` pointers. Grep/Glob only for gaps, and report `KG: gap <topic>`.
 - **Relationships:** `python3 .claude/tools/kg.py neighbors <id> --depth 2`.
-- **Updates:** only knowledge-keeper writes nodes (`save.py node <id>`). Hooks queue changed files; the `[harness:kg]` Stop message triggers knowledge-keeper. `INDEX.md` and `graph.json` are generated (`kg.py index`); never hand-edit them.
+- **Updates:** only knowledge-keeper writes nodes (`save.py node <id>`). Hooks queue changed files; the `[harness:kg]` Stop message triggers knowledge-keeper (last, section 7). `INDEX.md` and `graph.json` are generated (`kg.py index`); never hand-edit them.
 - **Major info only:** architecture, module responsibilities, entry points, public APIs, data models, commands, key decisions, gotchas. Never task state or secrets/PII.
 
 ## 🔒 9. Security constraints (all agents)

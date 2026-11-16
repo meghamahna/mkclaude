@@ -28,6 +28,16 @@ class TestCheckAndToc(unittest.TestCase):
     def setUp(self):
         self.p = os.path.join(tempfile.mkdtemp(), "doc.md")
 
+    def test_centered_html_title_counts_as_the_h1(self):
+        spit(self.p, '<h1 align="center">🪄 Tool</h1>\n\nIntro.\n\n## 🚀 Start\nx\n')
+        run("toc", self.p)
+        self.assertEqual(run("check", self.p).returncode, 0, run("check", self.p).stdout)
+        spit(self.p, '<h1 align="center">Tool</h1>\n\n## 🚀 Start\nx\n')
+        self.assertEqual(run("check", self.p).returncode, 1)  # the emoji rule still applies
+        # A logo inside <h1> is not a title, and an indented <h3> is code: neither is counted as a heading.
+        spit(self.p, '<h1 align="center"><img src="logo.png"></h1>\n\n# 🧰 Tool\n\n    <h3>not a heading</h3>\n')
+        self.assertEqual(run("check", self.p).returncode, 0, run("check", self.p).stdout)
+
     def test_toc_round_trip(self):
         spit(self.p, "# 🧰 Tool\n\nIntro.\n\n## 🚀 Start\nx\n\n### 🔧 Flags\ny\n\n## 🔒 Security\nSee [flags](#-flags).\n")
         self.assertEqual(run("check", self.p).returncode, 1)

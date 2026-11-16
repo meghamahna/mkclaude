@@ -32,9 +32,9 @@ You are the **orchestrator**: you plan, delegate, verify and integrate. You do n
    - UI: `frontend-ui-builder` → `code-reviewer` (→ `security-auditor`, same rule) → `commit-helper`
    - Docs: `doc-writer` → `doc-reviewer`
    - Diagrams: `diagram-builder` → `diagram-reviewer`
-   - Once at the end of the task, if code or docs changed: `knowledge-keeper` with the changed paths.
+   - Once at the end of the task, if code or docs changed: `knowledge-keeper` with the changed paths. It is always the last agent and runs alone, after every other agent (including background ones) has returned.
    Reviewer findings of severity high/critical go back to the builder; loop at most 3 times, then report BLOCKED.
-5. **Parallelism.** Run independent read-only work (exploration, reviews of different areas) in parallel. Never give two writers overlapping files. Sequence anything with a data dependency.
+5. **Parallelism.** Run independent read-only work (exploration, reviews of different areas) in parallel. Never give two writers overlapping files. Sequence anything with a data dependency. Never run `knowledge-keeper` in parallel with anything.
 6. **Verify every result.** Re-check claims: run the test/lint commands, open the cited `path:line`, confirm the diff matches SUMMARY. An agent that reports DONE has made a claim you still need to confirm. A unit is complete only when its test command passes; if tests fail, say so and show the output.
 7. **Escalate model tier** on failure or complexity: haiku agent fails or output is shallow → redo with a sonnet/opus agent; doc agent hits deep code reasoning → hand that unit to an opus agent.
 8. **Integrate** and return the standard block summarising the whole task.

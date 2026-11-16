@@ -99,6 +99,15 @@ class TestCleanup(unittest.TestCase):
         self.assertIn("[harness:cleanup]", out["reason"])
         self.assertIn("tmp_data.json", out["reason"])
         self.assertEqual(run_hook("stop_checks.py", {"stop_hook_active": True}, self.p), {})
+        self.assertEqual(run_hook("stop_checks.py", {"hook_event_name": "Stop"}, self.p), {})  # kept: not asked again
+        self.create_via_agent("tmp_more.json")
+        out = run_hook("stop_checks.py", {"hook_event_name": "Stop"}, self.p)
+        self.assertIn("tmp_more.json", out["reason"])
+        self.assertNotIn("tmp_data.json", out["reason"])
+        os.remove(os.path.join(self.p, "tmp_data.json"))
+        self.assertEqual(run_hook("stop_checks.py", {"hook_event_name": "Stop"}, self.p), {})
+        self.create_via_agent("tmp_data.json")  # made again after removal: raised again
+        self.assertIn("tmp_data.json", run_hook("stop_checks.py", {"hook_event_name": "Stop"}, self.p)["reason"])
 
     def test_real_new_files_do_not_trigger_the_reminder(self):
         self.create_via_agent("src/feature.py", "def f():\n    return 1\n")

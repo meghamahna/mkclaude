@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 400" width="1280" height="400" role="img" aria-labelledby="banner-title banner-desc">
+  <title id="banner-title">mkclaude</title>
+  <desc id="banner-desc">mkclaude: a complete, guarded Claude Code setup for any project. One command writes a .claude folder with agents, skills, hooks, a knowledge graph and settings.</desc>
+  <!--
+    Source for docs/assets/banner.png, the image the README shows.
+    Fonts: Plus Jakarta Sans (800, 400) and JetBrains Mono (400, 600).
+    To re-render after an edit, open this file in a page that loads those two fonts
+    and export it at 2560x800 with a transparent background.
+  -->
+  <defs>
+    <radialGradient id="glow" cx="1180" cy="0" r="620" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#F07A43" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#F07A43" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="12" cy="12" r="1" fill="#F4ECDF" fill-opacity="0.10"/>
+    </pattern>
+    <linearGradient id="fade" x1="0" y1="0" x2="1280" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0.40" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="1"/>
+    </linearGradient>
+    <mask id="dots-mask">
+      <rect width="1280" height="400" fill="url(#fade)"/>
+    </mask>
+    <clipPath id="frame">
+      <rect width="1280" height="400" rx="24"/>
+    </clipPath>
+  </defs>
+  <style>
+    .sans { font-family: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace; }
+    .cream { fill: #F4ECDF; }
+    .soft { fill: #CFC6B8; }
+    .muted { fill: #8D968F; }
+    .accent { fill: #F07A43; }
+  </style>
+
+  <!-- ground -->
+  <g clip-path="url(#frame)">
+    <rect width="1280" height="400" fill="#121815"/>
+    <rect width="1280" height="400" fill="url(#dots)" mask="url(#dots-mask)"/>
+    <rect width="1280" height="400" fill="url(#glow)"/>
+  </g>
+  <rect x="0.5" y="0.5" width="1279" height="399" rx="23.5" fill="none" stroke="#3A423D"/>
+
+  <!-- left: name, promise, command -->
+  <text x="80" y="96" class="mono accent" font-size="14" font-weight="600" letter-spacing="2.8">ONE COMMAND / ZERO DEPENDENCIES</text>
+  <text x="76" y="196" class="sans" font-size="104" font-weight="800" letter-spacing="-4"><tspan class="accent">mk</tspan><tspan class="cream">claude</tspan></text>
+  <text x="80" y="248" class="sans soft" font-size="23" font-weight="400">A complete, guarded Claude Code setup for any project.</text>
+
+  <rect x="80" y="280" width="448" height="48" rx="8" fill="#18201C" stroke="#3A423D"/>
+  <text x="100" y="310" class="mono" font-size="16"><tspan class="accent" font-weight="600">$</tspan><tspan class="cream"> python3 install.py DIR="your/project"</tspan></text>
+
+  <!-- arrow: the command produces the folder -->
+  <path d="M544 304 H772" fill="none" stroke="#F07A43" stroke-width="2"/>
+  <path d="M764 296 L774 304 L764 312" fill="none" stroke="#F07A43" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- right: what lands in the project -->
+  <rect x="792" y="56" width="408" height="288" rx="12" fill="#18201C" fill-opacity="0.88" stroke="#3A423D"/>
+  <text x="824" y="102" class="mono cream" font-size="20" font-weight="600">.claude/</text>
+  <path d="M832 120 V304" fill="none" stroke="#3A423D" stroke-width="1.5"/>
+  <g fill="none" stroke="#3A423D" stroke-width="1.5">
+    <path d="M832 144 H852"/>
+    <path d="M832 184 H852"/>
+    <path d="M832 224 H852"/>
+    <path d="M832 264 H852"/>
+    <path d="M832 304 H852"/>
+  </g>
+  <g class="accent">
+    <circle cx="856" cy="144" r="4"/>
+    <circle cx="856" cy="184" r="4"/>
+    <circle cx="856" cy="224" r="4"/>
+    <circle cx="856" cy="264" r="4"/>
+    <circle cx="856" cy="304" r="4"/>
+  </g>
+  <g class="mono cream" font-size="17" font-weight="600">
+    <text x="876" y="150">agents/</text>
+    <text x="876" y="190">skills/</text>
+    <text x="876" y="230">hooks/</text>
+    <text x="876" y="270">knowledge/</text>
+    <text x="876" y="310">settings.json</text>
+  </g>
+  <g class="mono muted" font-size="12.5" text-anchor="end">
+    <text x="1172" y="149">Opus · Sonnet · Haiku</text>
+    <text x="1172" y="189">design · tests · docs</text>
+    <text x="1172" y="229">secret + command guards</text>
+    <text x="1172" y="269">indexed graph</text>
+    <text x="1172" y="309">deny · ask · allow</text>
+  </g>
+</svg>
